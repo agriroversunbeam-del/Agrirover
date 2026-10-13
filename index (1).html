@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5faf7">
+<title>AgriRover | Smart Agriculture Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<style>
+:root{--bg:#f5f8f6;--panel:#fff;--ink:#203028;--muted:#78867d;--line:#e6eee8;--green:#18b58b;--blue:#4d87d9;--amber:#d9a044;--purple:#9062d5;--shadow:0 8px 28px #2344320d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}.app{min-height:100vh;display:grid;grid-template-columns:230px minmax(0,1fr)}aside{background:#fff;border-right:1px solid var(--line);padding:24px 15px;display:flex;flex-direction:column;gap:25px}.brand{display:flex;gap:11px;align-items:center;padding:0 9px}.mark{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#1bb88c,#4c9d65);display:grid;place-items:center;color:#fff;font-size:22px}.brand strong{font-size:17px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:3px}nav{display:grid;gap:5px}.nav{border:0;border-radius:11px;background:transparent;text-align:left;padding:12px;color:#68766e;cursor:pointer}.nav.active,.nav:hover{background:#e7f8f2;color:#148b6d;font-weight:700}.side-bottom{margin-top:auto}.connection{border:1px solid var(--line);border-radius:11px;padding:11px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px}.dot{height:8px;width:8px;border-radius:50%;background:#c1c9c3;display:inline-block;flex-shrink:0}.dot.on{background:#18b58b;box-shadow:0 0 0 4px #18b58b20}.dot.off{background:#d95c5c}main{min-width:0;padding:30px clamp(16px,3vw,40px)}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:25px}h1{font-size:clamp(24px,2.5vw,32px);letter-spacing:-1px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:6px}.statusbox{background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 13px;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:20px}.metric,.panel{background:var(--panel);border:1px solid #edf2ee;border-radius:17px;box-shadow:var(--shadow)}.metric{position:relative;overflow:hidden;padding:20px}.metric:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--a)}.soil{--a:var(--green)}.hum{--a:var(--blue)}.temp{--a:var(--amber)}.air{--a:var(--purple)}.metric-head{font-size:12px;color:#68766e;display:flex;justify-content:space-between;gap:8px}.ico{color:var(--a);font-size:20px}.value{font-size:clamp(24px,2.2vw,33px);font-weight:800;letter-spacing:-1px;margin-top:14px;overflow-wrap:anywhere}.foot{font-size:11px;color:var(--a);margin-top:8px}.panel{padding:21px;margin-bottom:20px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;font-size:14px;font-weight:800}.hint{font-size:11px;font-weight:400;color:var(--muted)}.chart{height:320px;position:relative}.lower{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #f0f3f1}.row:last-child{border-bottom:0}.label{font-size:12px;color:var(--muted)}.num{font-size:15px;font-weight:750;margin-top:4px}.pill{font-size:10px;border-radius:20px;padding:6px 9px;background:#e7f8f2;color:#148b6d;white-space:nowrap}.insight{padding:15px;border:1px solid #dff2e8;border-radius:13px;background:linear-gradient(140deg,#e9f9f2,#f5fbf7);margin-bottom:12px}.insight strong{font-size:13px}.insight p,.note{font-size:12px;line-height:1.6;color:#64766c;margin:7px 0 0}.note{font-size:11px;color:var(--muted)}footer{text-align:right;color:#98a39c;font-size:10px;padding-top:4px}.warn{padding:11px 13px;border:1px solid #f0dfb9;background:#fff9e9;border-radius:11px;color:#795b1c;font-size:11px;line-height:1.5;margin-bottom:18px}
+@media(max-width:1050px){.app{grid-template-columns:200px 1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}}@media(max-width:700px){.app{display:block}aside{padding:12px;border-right:0;border-bottom:1px solid var(--line);gap:12px}.brand{padding:0 4px}nav{display:flex;overflow-x:auto}.nav{white-space:nowrap;padding:10px}.side-bottom{margin-top:0}main{padding:21px 13px}.metric{padding:16px 13px}.value{font-size:24px}.panel{padding:15px}.chart{height:260px}.top{align-items:flex-start}}@media(max-width:390px){.metrics{gap:9px}.value{font-size:21px}.metric-head{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand"><div class="mark">🌱</div><div><strong>AgriRover</strong><small>Precision IoT Robot</small></div></div>
+  <nav>
+    <button class="nav active">▦ &nbsp; Dashboard</button><button class="nav" data-page="Weather Forecast">☁ &nbsp; Weather Forecast</button><button class="nav" data-page="AI Crop Advisor">◉ &nbsp; AI Crop Advisor</button><button class="nav" data-page="Disease Diagnostics">✳ &nbsp; Disease Diagnostics</button><button class="nav" data-page="Fertilizer Advisory">♧ &nbsp; Fertilizer Advisory</button><button class="nav" data-page="Seasonal Crops">♣ &nbsp; Seasonal Crops</button><button class="nav" data-page="Govt Schemes">▤ &nbsp; Govt Schemes</button><button class="nav" data-page="Farmer Profile">♙ &nbsp; Farmer Profile</button>
+  </nav>
+  <div class="side-bottom"><div class="connection"><span id="dot" class="dot"></span><span id="connection">Starting MQTT…</span></div></div>
+</aside>
+<main>
+  <div class="top"><div><h1>Dashboard Overview</h1><div class="sub">Real-time telemetry and robot diagnostics</div></div><div class="statusbox">🌐 &nbsp;<strong id="headTemp">--°C</strong><div class="hint">Latest sensor temperature</div></div></div>
+  <div class="warn"><strong>Setup note:</strong> Edit the MQTT settings in the CONFIG section inside this file once before hosting. This single-file version connects directly from the browser, so anyone who can view the public HTML/source can extract the MQTT credentials. Use the backend ZIP version for secure public sharing.</div>
+  <div class="metrics">
+    <article class="metric soil"><div class="metric-head">Soil Moisture <span class="ico">◆</span></div><div class="value" id="soil">--%</div><div class="foot" id="soilFoot">Waiting for sensor</div></article>
+    <article class="metric hum"><div class="metric-head">Air Humidity <span class="ico">≋</span></div><div class="value" id="humidity">--%</div><div class="foot" id="humFoot">Waiting for sensor</div></article>
+    <article class="metric temp"><div class="metric-head">Temperature <span class="ico">♨</span></div><div class="value" id="temperature">--°C</div><div class="foot" id="tempFoot">Waiting for sensor</div></article>
+    <article class="metric air"><div class="metric-head">MQ135 Raw <span class="ico">◉</span></div><div class="value" id="mq">--</div><div class="foot">Raw ADC · not calibrated AQI</div></article>
+  </div>
+  <section class="panel"><div class="panel-head"><span>▥ &nbsp; Sensor Historical Trends</span><span class="hint">Latest <span id="count">0</span> readings</span></div><div class="chart"><canvas id="chart"></canvas></div><p class="note">Chart history is stored only while this page remains open.</p></section>
+  <div class="lower">
+    <section class="panel"><div class="panel-head">Live Sensor Details <span class="pill" id="dataState">Waiting</span></div>
+      <div class="row"><div><div class="label">Soil raw ADC</div><div class="num" id="soilRaw">--</div></div><span class="pill">GPIO 34</span></div>
+      <div class="row"><div><div class="label">Soil moisture status</div><div class="num" id="soilStatus">--</div></div><span class="pill" id="soilPill">Unknown</span></div>
+      <div class="row"><div><div class="label">MQ135 raw ADC</div><div class="num" id="mqRaw">--</div></div><span class="pill">GPIO 35</span></div>
+      <div class="row"><div><div class="label">ESP32 Wi-Fi RSSI</div><div class="num" id="rssi">--</div></div><span class="pill">ESP32</span></div>
+      <div class="row"><div><div class="label">Last sensor update</div><div class="num" id="lastUpdate">Waiting</div></div></div>
+    </section>
+    <section class="panel"><div class="panel-head">Smart Insights</div><div class="insight"><strong id="insightTitle">Waiting for sensor data</strong><p id="insight">When sensor data arrives, basic moisture guidance appears here.</p></div><div class="insight"><strong>Air sensor note</strong><p id="airNote">MQ135 data is displayed as raw ADC, not AQI.</p></div><p class="note">Simple sensor hints only; not crop-specific agronomy advice.</p></section>
+  </div>
+  <footer>AgriRover · ESP32 + HiveMQ Cloud · <span id="footerStatus">Starting</span></footer>
+</main>
+</div>
+<script>
+// ======================== CONFIG: EDIT ONCE ========================
+// Use HiveMQ Cloud's WebSocket/TLS port (usually 8884).
+// Never use your administrator/root broker credentials here.
+const CONFIG = {
+  host: "YOUR_HIVEMQ_CLUSTER_HOSTNAME", // e.g. your-cluster-id.s1.eu.hivemq.cloud
+  port: 8884,
+  username: "YOUR_READ_ONLY_MQTT_USERNAME",
+  password: "PASTE_YOUR_MQTT_PASSWORD_HERE",
+  sensorTopic: "agrirover/sensors",
+  statusTopic: "agrirover/status",
+  clientId: "agr_web_" + Math.random().toString(16).slice(2, 10)
+};
+// ================================================================
+
+(() => {
+ const $ = id => document.getElementById(id);
+ const chart = new Chart($('chart'), {
+  type:'line',
+  data:{labels:[],datasets:[
+   {label:'Soil Moisture (%)',data:[],borderColor:'#18b58b',backgroundColor:'rgba(24,181,139,.10)',fill:true,tension:.35,pointRadius:2.5,borderWidth:2},
+   {label:'Air Humidity (%)',data:[],borderColor:'#4d87d9',backgroundColor:'rgba(77,135,217,.08)',fill:true,tension:.35,pointRadius:2.5,borderWidth:2},
+   {label:'Temperature (°C)',data:[],borderColor:'#d9a044',backgroundColor:'rgba(217,160,68,.05)',fill:false,tension:.35,pointRadius:2.5,borderWidth:2}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:22,color:'#66756c',font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:'#89968e',maxTicksLimit:8}},y:{beginAtZero:true,max:100,grid:{color:'#eef2ef'},ticks:{color:'#89968e'}}}}
+ });
+ let history=[];
+ function setConn(on,msg){$('dot').className='dot '+(on?'on':'off');$('connection').textContent=msg;$('footerStatus').textContent=on?'Connected to HiveMQ':'MQTT disconnected';}
+ function guidance(soil){if(!Number.isFinite(soil))return ['Waiting for sensor data','Check ESP32 publishing and MQTT topic settings.'];if(soil<30)return ['Soil may be dry','Moisture is below 30%. Check the crop’s watering requirements.'];if(soil<45)return ['Moisture is on the lower side','Check crop-specific needs and recheck soil before irrigation.'];if(soil<=75)return ['Moisture is in a moderate range','Ideal moisture varies by crop and soil type.'];return ['High soil moisture','Check drainage and crop requirements.'];}
+ function update(d){
+  const soil=num(d,['soil_percent','soilPercent']),hum=num(d,['humidity','air_humidity']),temp=num(d,['temperature','temp']),mq=num(d,['mq135_raw','mq135','air_quality_raw']),raw=num(d,['soil_raw','soilRaw']),rssi=num(d,['wifi_rssi','rssi']);
+  if(Number.isFinite(soil)){$('soil').textContent=Math.round(soil)+'%';$('soilFoot').textContent=d.soil_status||d.soilStatus||(soil<30?'Below 30% threshold':'Reading received');$('soilRaw').textContent=fmt(raw);$('soilStatus').textContent=d.soil_status||d.soilStatus||(soil<30?'DRY':'MOIST');$('soilPill').textContent=d.soil_status||d.soilStatus||(soil<30?'Dry':'Moist');const [t,m]=guidance(soil);$('insightTitle').textContent=t;$('insight').textContent=m;}
+  if(Number.isFinite(hum)){$('humidity').textContent=hum.toFixed(0)+'%';$('humFoot').textContent='Latest sensor reading';}
+  if(Number.isFinite(temp)){$('temperature').textContent=temp.toFixed(1)+'°C';$('headTemp').textContent=temp.toFixed(1)+'°C';$('tempFoot').textContent='Latest sensor reading';}
+  if(Number.isFinite(mq)){$('mq').textContent=Math.round(mq);$('mqRaw').textContent=Math.round(mq);$('airNote').textContent='MQ135 raw ADC: '+Math.round(mq)+'. This is not an AQI value unless calibrated.';}
+  $('rssi').textContent=Number.isFinite(rssi)?rssi+' dBm':'--';$('dataState').textContent='Live data';$('lastUpdate').textContent=new Date().toLocaleTimeString();
+  history.push({label:new Date().toLocaleTimeString(),soil:Number.isFinite(soil)?soil:null,hum:Number.isFinite(hum)?hum:null,temp:Number.isFinite(temp)?temp:null});history=history.slice(-25);$('count').textContent=history.length;
+  chart.data.labels=history.map(x=>x.label);chart.data.datasets[0].data=history.map(x=>x.soil);chart.data.datasets[1].data=history.map(x=>x.hum);chart.data.datasets[2].data=history.map(x=>x.temp);chart.update('none');
+ }
+ function num(obj,keys){for(const k of keys){if(obj[k]!==undefined&&obj[k]!==null&&obj[k]!==''){const n=Number(obj[k]);if(Number.isFinite(n))return n;}}return NaN;}
+ function fmt(n){return Number.isFinite(n)?Math.round(n):'--';}
+ document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>alert(b.dataset.page+' is a placeholder in this dashboard UI.')));
+ if(!CONFIG.host||CONFIG.host.startsWith('YOUR_')||!CONFIG.username||CONFIG.username.startsWith('YOUR_')||!CONFIG.password||CONFIG.password.includes('PASTE_YOUR')){
+   setConn(false,'Edit CONFIG at top of this HTML file');
+   $('footerStatus').textContent='MQTT settings required';
+   return;
+ }
+ const url=`wss://${CONFIG.host}:${CONFIG.port}/mqtt`;
+ const client=mqtt.connect(url,{username:CONFIG.username,password:CONFIG.password,clientId:CONFIG.clientId,clean:true,connectTimeout:15000,reconnectPeriod:3000,keepalive:30});
+ client.on('connect',()=>{setConn(true,'Connected to HiveMQ · subscribing');client.subscribe([CONFIG.sensorTopic,CONFIG.statusTopic],{qos:0},err=>{if(err)setConn(false,'MQTT subscribe failed');else setConn(true,'HiveMQ connected · waiting for rover');});});
+ client.on('reconnect',()=>setConn(false,'Reconnecting to HiveMQ…'));
+ client.on('close',()=>setConn(false,'MQTT connection closed'));
+ client.on('error',err=>{console.error('MQTT error:',err);setConn(false,'MQTT error · check settings/topic');});
+ client.on('message',(topic,payload)=>{
+   const text=payload.toString();
+   if(topic===CONFIG.statusTopic){const online=text.trim().toLowerCase()==='online';setConn(online,online?'AgriRover: Online':'HiveMQ connected · rover status offline');return;}
+   if(topic===CONFIG.sensorTopic){try{update(JSON.parse(text));setConn(true,'AgriRover: Live data');}catch(e){console.error('Sensor payload must be JSON',e);}}
+ });
+})();
+</script>
+</body>
+</html>
