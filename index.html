@@ -50,10 +50,10 @@
 // Use HiveMQ Cloud's WebSocket/TLS port (usually 8884).
 // Never use your administrator/root broker credentials here.
 const CONFIG = {
-  host: "YOUR_HIVEMQ_CLUSTER_HOSTNAME", // e.g. your-cluster-id.s1.eu.hivemq.cloud
+  host: "714c2eac1b6142fbb2753fc0870e98dd.s1.eu.hivemq.cloud", // e.g. your-cluster-id.s1.eu.hivemq.cloud
   port: 8884,
-  username: "YOUR_READ_ONLY_MQTT_USERNAME",
-  password: "PASTE_YOUR_MQTT_PASSWORD_HERE",
+  username: "agri_robot",
+  password: "12345678",
   sensorTopic: "agrirover/sensors",
   statusTopic: "agrirover/status",
   clientId: "agr_web_" + Math.random().toString(16).slice(2, 10)
